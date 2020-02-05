@@ -1,0 +1,15 @@
+version: '3'
+services:
+  fetch-holiday:
+    container_name: fetch-holiday
+    restart: always
+    build: .
+    ports:
+      - '80:3000'
+    links:
+      - redis
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - '6500:6500'

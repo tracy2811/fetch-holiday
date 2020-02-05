@@ -7,9 +7,40 @@ const {
 	GraphQLInt,
 	GraphQLList,
 } = require('graphql');
-//const API_KEY = '6a4269bf85c8aa1c01398b3bb2b1b285a6353162';
-const API_KEY = '45b7e2b66c72ae40c9da0187cc6df876a6639f59';
+const Redis = require('ioredis');
+const REDIS_PORT = process.env.REDIS_PORT || 6379;
+const redis = new Redis(REDIS_PORT, 'redis');
+const API_KEY = process.env.API_KEY || '769410283bc951f189ec586b30214c972423116c';
 const currentYear = new Date().getFullYear();
+
+// Get holidays for specific country
+const getHoliday = function (country, year) {
+	// Get holidays from redis
+	return redis.get(`fetch-holiday:${country}`).then(function (data) {
+		if (data !== null) {
+			return JSON.parse(data)
+		}
+
+		// Holidays for this country not exist, fetch from calendarific
+		return axios.get('https://calendarific.com/api/v2/holidays', {
+			params: {
+				api_key: API_KEY,
+				country: country,
+				year
+			}
+		}).then(res => {
+			const holidays = res.data.response.holidays
+			holidays.forEach(holiday => {
+				holiday.date = holiday.date.iso;
+			});
+
+			// Set holidays for this country in redis
+			redis.set(`fetch-holiday:${country}`, JSON.stringify(holidays)); // It is not good practice to use JSON.stringify
+			return holidays
+		});
+	}).catch(err => console.log(err));
+
+}
 
 // HolidayType
 const HolidayType = new GraphQLObjectType({
@@ -42,7 +73,6 @@ const Query = new GraphQLObjectType ({
 	fields: {
 
 		// Return all countries and their holidays
-		// TODO: Impove getting holidays for each country
 		countries: {
 			type: new GraphQLList(CountryType),
 			args: {
@@ -58,22 +88,8 @@ const Query = new GraphQLObjectType ({
 					countries.forEach(country => {
 						const year = args.year || currentYear;
 						country.iso_3166 = country['iso-3166'];
-						return axios.get('https://calendarific.com/api/v2/holidays', {
-							params: {
-								api_key: API_KEY,
-								country: country.iso_3166,
-								year
-							}
-						}).then(res => {
-							const holidays = res.data.response.holidays;
-							holidays.forEach(holiday => {
-								holiday.date = holiday.date.iso;
-							});
-
-
-							return (country.holidays = holidays);
-						});
-
+						const holidays = getHoliday(country.iso_3166, year);
+						country.holidays = holidays;
 					});
 					return countries;
 				});
@@ -89,19 +105,7 @@ const Query = new GraphQLObjectType ({
 			},
 			resolve(parent, args) {
 				const year = args.year || currentYear;
-				return axios.get('https://calendarific.com/api/v2/holidays', {
-					params: {
-						api_key: API_KEY,
-						country: args.country,
-						year
-					}
-				}).then(res => {
-					const holidays = res.data.response.holidays
-					holidays.forEach(holiday => {
-						holiday.date = holiday.date.iso;
-					});
-
-				});
+				return getHoliday(args.country, year);
 			},
 		},
 	}

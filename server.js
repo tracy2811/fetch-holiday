@@ -10,5 +10,7 @@ app.use('/graphql', graphqlHTTP({
 	graphiql: !(process.env.NODE_ENV === 'production'),
 }));
 
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.get('/', (req, res, next) => res.redirect('/graphql'));
+
+app.listen(PORT, () => console.log('Server running...'));
 
