@@ -3,7 +3,7 @@ import graphqlHTTP from 'express-graphql';
 import schema from './schema';
 
 const app: Application = express();
-const PORT: number = +process.env.PORT || 3000;
+const PORT: number = process.env.PORT || 3000;
 
 app.use('/graphql', graphqlHTTP({
 	schema,
