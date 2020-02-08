@@ -1,17 +1,17 @@
-const axios = require('axios');
-const {
+import axios from 'axios';
+import {
 	GraphQLSchema,
 	GraphQLNonNull,
 	GraphQLString,
 	GraphQLObjectType,
 	GraphQLInt,
 	GraphQLList,
-} = require('graphql');
-const Redis = require('ioredis');
-const REDIS_PORT = process.env.REDIS_PORT || 6379;
+} from 'graphql';
+import Redis from 'ioredis';
+const REDIS_PORT: number = process.env.REDIS_PORT || 6379;
 const redis = new Redis(REDIS_PORT, 'redis');
-const API_KEY = process.env.API_KEY || '769410283bc951f189ec586b30214c972423116c';
-const currentYear = new Date().getFullYear();
+const API_KEY: string = process.env.API_KEY || '769410283bc951f189ec586b30214c972423116c';
+const currentYear: number = new Date().getFullYear();
 
 // Get holidays for specific country
 const getHoliday = function (country, year) {
@@ -111,7 +111,7 @@ const Query = new GraphQLObjectType ({
 	}
 });
 
-module.exports = new GraphQLSchema({
+export default new GraphQLSchema({
 	query: Query,
 });
 

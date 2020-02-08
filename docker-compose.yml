@@ -8,6 +8,9 @@ services:
       - '80:3000'
     links:
       - redis
+    environment:
+      - NODE_ENV
+
   redis:
     container_name: redis
     image: redis

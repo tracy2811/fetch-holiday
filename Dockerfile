@@ -6,7 +6,7 @@ COPY package*.json ./
 
 RUN npm i
 
-COPY . .
+COPY dist/* ./
 
 EXPOSE 3000
 
