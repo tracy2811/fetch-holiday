@@ -16,7 +16,7 @@ GraphQL interface in Express (NodeJS) for fetching holidays information from [Ca
   * On Local Machine
 
     ```
-    npm run start
+    node dist/server.js
     ```
 
   * Using Docker
